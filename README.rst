@@ -136,6 +136,8 @@ Projects using this library
 * `AMPL/MP <https://github.com/ampl/mp>`_:
   An open-source library for mathematical programming
 
+* `CUAUV <http://cuauv.org/>`_: Cornell University's autonomous underwater vehicle
+
 * `HarpyWar/pvpgn <https://github.com/pvpgn/pvpgn-server>`_:
   Player vs Player Gaming Network with tweaks
 
@@ -161,6 +163,12 @@ Projects using this library
 
 * `Salesforce Analytics Cloud <http://www.salesforce.com/analytics-cloud/overview/>`_:
   Business intelligence software
+
+* `Scylla <http://www.scylladb.com/>`_: A Cassandra-compatible NoSQL data store that can handle
+  1 million transactions per second on a single server
+
+* `Seastar <http://www.seastar-project.org/>`_: An advanced, open-source C++ framework for
+  high-performance server applications on modern hardware
 
 * `spdlog <https://github.com/gabime/spdlog>`_: Super fast C++ logging library
 
@@ -393,6 +401,11 @@ It only applies if you distribute the documentation of fmt.
 
 Acknowledgments
 ---------------
+
+The fmt library is maintained by Victor Zverovich (`vitaut <https://github.com/vitaut>`_)
+and Jonathan Müller (`foonathan <https://github.com/foonathan>`_) with contributions from many
+other people. See `Contributors <https://github.com/fmtlib/fmt/graphs/contributors>`_ and `Releases <https://github.com/fmtlib/fmt/releases>`_ for some of the names. Let us know if your contribution
+is not listed or mentioned incorrectly and we'll make it right.
 
 The benchmark section of this readme file and the performance tests are taken
 from the excellent `tinyformat <https://github.com/c42f/tinyformat>`_ library

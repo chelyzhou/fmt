@@ -250,7 +250,7 @@ TEST(WriterTest, Allocator) {
   std::size_t size =
       static_cast<std::size_t>(1.5 * fmt::internal::INLINE_BUFFER_SIZE);
   std::vector<char> mem(size);
-  EXPECT_CALL(alloc, allocate(size)).WillOnce(testing::Return(&mem[0]));
+  EXPECT_CALL(alloc, allocate(size, 0)).WillOnce(testing::Return(&mem[0]));
   for (int i = 0; i < fmt::internal::INLINE_BUFFER_SIZE + 1; ++i)
     w << '*';
   EXPECT_CALL(alloc, deallocate(&mem[0], size));
@@ -1225,7 +1225,7 @@ TEST(FormatterTest, FormatOct) {
 
 TEST(FormatterTest, FormatIntLocale) {
   ScopedMock<LocaleMock> mock;
-  lconv lc = {};
+  lconv lc = lconv();
   char sep[] = "--";
   lc.thousands_sep = sep;
   EXPECT_CALL(mock, localeconv()).Times(3).WillRepeatedly(testing::Return(&lc));
@@ -1343,6 +1343,8 @@ TEST(FormatterTest, FormatUCharString) {
   EXPECT_EQ("test", format("{0:s}", str));
   const unsigned char *const_str = str;
   EXPECT_EQ("test", format("{0:s}", const_str));
+  unsigned char *ptr = str;
+  EXPECT_EQ("test", format("{0:s}", ptr));
 }
 
 TEST(FormatterTest, FormatPointer) {
@@ -1366,7 +1368,7 @@ TEST(FormatterTest, FormatCStringRef) {
   EXPECT_EQ("test", format("{0}", CStringRef("test")));
 }
 
-void format(fmt::BasicFormatter<char> &f, const char *, const Date &d) {
+void format_arg(fmt::BasicFormatter<char> &f, const char *, const Date &d) {
   f.writer() << d.year() << '-' << d.month() << '-' << d.day();
 }
 
@@ -1379,7 +1381,7 @@ TEST(FormatterTest, FormatCustom) {
 class Answer {};
 
 template <typename Char>
-void format(fmt::BasicFormatter<Char> &f, const Char *, Answer) {
+void format_arg(fmt::BasicFormatter<Char> &f, const Char *, Answer) {
   f.writer() << "42";
 }
 
@@ -1651,3 +1653,11 @@ FMT_VARIADIC(void, custom_format, const char *)
 TEST(FormatTest, CustomArgFormatter) {
   custom_format("{}", 42);
 }
+
+void convert(int);
+
+// Check if there is no collision with convert function in the global namespace.
+TEST(FormatTest, ConvertCollision) {
+  fmt::format("{}", 42);
+}
+

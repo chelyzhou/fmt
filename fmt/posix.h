@@ -10,7 +10,7 @@
 #ifndef FMT_POSIX_H_
 #define FMT_POSIX_H_
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(__CYGWIN__)
 // Workaround MinGW bug https://sourceforge.net/p/mingw/bugs/2024/.
 # undef __STRICT_ANSI__
 #endif
@@ -27,7 +27,7 @@
 # include <xlocale.h>  // for LC_NUMERIC_MASK on OS X
 #endif
 
-#include "fmt/format.h"
+#include "format.h"
 
 #ifndef FMT_POSIX
 # if defined(_WIN32) && !defined(__MINGW32__)
@@ -49,25 +49,6 @@
 # else
 #  define FMT_POSIX_CALL(call) ::call
 # endif
-#endif
-
-#if FMT_GCC_VERSION >= 407
-# define FMT_UNUSED __attribute__((unused))
-#else
-# define FMT_UNUSED
-#endif
-
-#ifndef FMT_USE_STATIC_ASSERT
-# define FMT_USE_STATIC_ASSERT 0
-#endif
-
-#if FMT_USE_STATIC_ASSERT || FMT_HAS_FEATURE(cxx_static_assert) || \
-  (FMT_GCC_VERSION >= 403 && FMT_HAS_GXX_CXX11) || _MSC_VER >= 1600
-# define FMT_STATIC_ASSERT(cond, message) static_assert(cond, message)
-#else
-# define FMT_CONCAT_(a, b) FMT_CONCAT(a, b)
-# define FMT_STATIC_ASSERT(cond, message) \
-  typedef int FMT_CONCAT_(Assert, __LINE__)[(cond) ? 1 : -1] FMT_UNUSED
 #endif
 
 // Retries the expression while it evaluates to error_result and errno
@@ -107,7 +88,7 @@ class BufferedFile {
 
  public:
   // Constructs a BufferedFile object which doesn't represent any file.
-  BufferedFile() FMT_NOEXCEPT : file_(0) {}
+  BufferedFile() FMT_NOEXCEPT : file_(FMT_NULL) {}
 
   // Destroys the object closing the file it represents if any.
   ~BufferedFile() FMT_NOEXCEPT;
@@ -129,7 +110,7 @@ public:
 
   // A "move constructor" for moving from an lvalue.
   BufferedFile(BufferedFile &f) FMT_NOEXCEPT : file_(f.file_) {
-    f.file_ = 0;
+    f.file_ = FMT_NULL;
   }
 
   // A "move assignment operator" for moving from a temporary.
@@ -143,7 +124,7 @@ public:
   BufferedFile &operator=(BufferedFile &other) {
     close();
     file_ = other.file_;
-    other.file_ = 0;
+    other.file_ = FMT_NULL;
     return *this;
   }
 
@@ -151,7 +132,7 @@ public:
   //   BufferedFile file = BufferedFile(...);
   operator Proxy() FMT_NOEXCEPT {
     Proxy p = {file_};
-    file_ = 0;
+    file_ = FMT_NULL;
     return p;
   }
 
@@ -161,13 +142,13 @@ public:
 
  public:
   BufferedFile(BufferedFile &&other) FMT_NOEXCEPT : file_(other.file_) {
-    other.file_ = 0;
+    other.file_ = FMT_NULL;
   }
 
   BufferedFile& operator=(BufferedFile &&other) {
     close();
     file_ = other.file_;
-    other.file_ = 0;
+    other.file_ = FMT_NULL;
     return *this;
   }
 #endif
@@ -321,7 +302,8 @@ class File {
 // Returns the memory page size.
 long getpagesize();
 
-#if (defined(LC_NUMERIC_MASK) || defined(_MSC_VER)) && !defined(__ANDROID__)
+#if (defined(LC_NUMERIC_MASK) || defined(_MSC_VER)) && \
+    !defined(__ANDROID__) && !defined(__CYGWIN__)
 # define FMT_LOCALE
 #endif
 
@@ -354,9 +336,9 @@ class Locale {
  public:
   typedef locale_t Type;
 
-  Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", NULL)) {
+  Locale() : locale_(newlocale(LC_NUMERIC_MASK, "C", FMT_NULL)) {
     if (!locale_)
-      throw fmt::SystemError(errno, "cannot create locale");
+      FMT_THROW(fmt::SystemError(errno, "cannot create locale"));
   }
   ~Locale() { freelocale(locale_); }
 
@@ -365,7 +347,7 @@ class Locale {
   // Converts string to floating-point number and advances str past the end
   // of the parsed input.
   double strtod(const char *&str) const {
-    char *end = 0;
+    char *end = FMT_NULL;
     double result = strtod_l(str, &end, locale_);
     str = end;
     return result;
